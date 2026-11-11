@@ -365,9 +365,9 @@ const CONFIG = {
   // 웨딩 인터뷰 (비워두면 섹션 숨김). 다시 쓰려면 예: { q: "처음에 어떻게 만나셨어요?", groom: "...", bride: "..." }
   interview: [],
 
-  // 갤러리: photos/gallery/01.jpg ~ 24.jpg (크게 보기용) + photos/gallery/thumb/ (바둑판용 정사각형)
+  // 갤러리: photos/gallery/01.jpg ~ 30.jpg (크게 보기용) + photos/gallery/thumb/ (바둑판용 정사각형)
   // 처음 9장만 보이고 '더 보기'로 나머지 표시. 장수가 바뀌면 length 숫자만 바꾸면 됩니다.
-  gallery: Array.from({ length: 24 }, (_, i) => {
+  gallery: Array.from({ length: 30 }, (_, i) => {
     const n = String(i + 1).padStart(2, "0");
     return { src: `photos/gallery/${n}.jpg`, thumb: `photos/gallery/thumb/${n}.jpg` };
   }),
