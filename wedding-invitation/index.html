@@ -245,6 +245,8 @@ section{padding:80px 24px;text-align:center;position:relative}
 .trans .box:last-child{border:0}
 .trans .t{color:var(--point1);font-size:15px;margin-bottom:6px}
 .trans .d{font-size:14px;line-height:1.85;color:#555}
+.trans .d b{color:var(--font-color);font-weight:700}
+.trans .d .sub{display:block;margin-top:12px;font-size:13px;color:var(--point1)}
 
 /* ---------- 게스트스냅 ---------- */
 .snap{background:var(--soft)}
@@ -407,9 +409,18 @@ const CONFIG = {
 
   // 오시는 길
   transport: [
-    { title: "지하철", desc: "광주도시철도 1호선<br>김대중컨벤션센터역 하차 후 도보 이동" },
-    { title: "버스", desc: "월암 정류장 또는<br>김대중컨벤션센터(마륵)역 정류장 하차" },
-    { title: "자가용", desc: "내비게이션에서 '글로리아웨딩홀' 검색<br>제1~제4주차장 이용" },
+    { title: "지하철", desc:
+      "광주도시철도 1호선 <b>김대중컨벤션센터(마륵)역 3번 출구</b><br>출구에서 웨딩홀까지 도보로 이동하실 수 있습니다." +
+      "<span class='sub'>KTX · SRT 이용 시</span>광주송정역 하차 → 송정역에서 지하철 1호선 탑승<br>(소태 · 녹동 방향) → 김대중컨벤션센터역 3번 출구" +
+      "<span class='sub'>광주공항에서 오실 때</span>지하철 1호선 공항역 탑승 → 김대중컨벤션센터역 하차" },
+    { title: "버스", desc:
+      "<b>김대중컨벤션센터역 3번 출구</b> 정류장 하차 (정류소번호 2131)<br>" +
+      "일반 01, 11, 19, 20, 20-1, 38, 62, 63, 69, 73, 1001<br>급행 1003 · 나주 160 · 함평 500" +
+      "<span class='sub'>광천터미널(유스퀘어)에서 오실 때</span>01, 38, 500, 1001, 1003번<br>→ 김대중컨벤션센터역 3번 출구 하차" +
+      "<span class='sub'>광주공항에서 오실 때</span>나주 160번 → 김대중컨벤션센터역 하차" },
+    { title: "자가용", desc:
+      "내비게이션에서 <b>'글로리아웨딩홀'</b> 검색<br>(광주광역시 서구 상무대로 683)<br>고속도로 이용 시 <b>동림IC</b>로 나오시면 가깝습니다.<br>" +
+      "웨딩홀 제1~제4주차장 이용 (주차비 무료)" },
   ],
 
   // 게스트스냅: 사진 업로드 링크 (구글드라이브 업로드 폴더, 구글폼 등)
