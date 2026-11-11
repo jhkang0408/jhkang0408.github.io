@@ -80,7 +80,13 @@ section{padding:80px 24px;text-align:center;position:relative}
 .top-ctrl{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--maxw);z-index:50;pointer-events:none;display:flex;justify-content:space-between;padding:14px 16px}
 .top-ctrl button{pointer-events:auto;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .top-ctrl svg{width:18px;height:18px;stroke:#555;fill:none;stroke-width:1.6}
-#musicBtn.playing svg{animation:spin 4s linear infinite}
+#musicBtn .ic-on{display:none}
+#musicBtn.playing .ic-on{display:block;animation:spin 4s linear infinite}
+#musicBtn.playing .ic-off{display:none}
+/* 원본 템플릿처럼 '배경음악이 준비 되었습니다.' 안내 */
+#bgmNotice{position:fixed;top:20px;left:50%;transform:translate(-50%,-8px);z-index:55;background:rgba(40,40,40,.72);color:#fff;
+  font-size:12px;padding:6px 14px;border-radius:16px;opacity:0;transition:.4s;pointer-events:none;white-space:nowrap}
+#bgmNotice.show{opacity:1;transform:translate(-50%,0)}
 @keyframes spin{to{transform:rotate(360deg)}}
 #menu{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--maxw);z-index:60;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;opacity:0;pointer-events:none;transition:.3s}
 #menu.open{opacity:1;pointer-events:auto}
@@ -435,7 +441,8 @@ const CONFIG = {
   endingPhoto: "photos/ending.jpg",
   endingMessage: ["저희의 새로운 시작을 함께해주셔서", "진심으로 감사합니다."],
 
-  bgm: "",                                 // 배경음악 mp3 경로 (예: "music/bgm.mp3"), 비우면 버튼 숨김
+  bgm: "music/bgm.mp3",                    // 배경음악 mp3 경로. 파일이 없거나 비우면 버튼이 자동으로 숨겨짐
+  bgmVolume: 0.4,
 };
 </script>
 
@@ -443,10 +450,14 @@ const CONFIG = {
 
 <div class="top-ctrl">
   <button id="menuBtn" aria-label="메뉴"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  <button id="musicBtn" aria-label="배경음악" class="hidden"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
+  <button id="musicBtn" aria-label="배경음악 켜기/끄기" class="hidden">
+    <svg class="ic-off" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
+    <svg class="ic-on" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+  </button>
 </div>
 <nav id="menu"><button class="close" aria-label="닫기">×</button></nav>
-<audio id="bgm" loop></audio>
+<audio id="bgm" loop preload="auto"></audio>
+<div id="bgmNotice">배경음악이 준비 되었습니다.</div>
 
 <div id="wrap">
   <section class="main" id="s-main" data-menu="메인">
@@ -912,16 +923,35 @@ document.querySelectorAll("section[data-menu]").forEach(s => {
 $("#menuBtn").onclick = () => menu.classList.add("open");
 menu.querySelector(".close").onclick = () => menu.classList.remove("open");
 
-/* ---------- 배경음악 ---------- */
+/* ---------- 배경음악 (원본 템플릿 방식) ---------- */
+// 오른쪽 위 버튼: 꺼짐(음소거 아이콘) / 재생 중(음표 아이콘). 로딩이 끝나면 '배경음악이 준비 되었습니다.' 안내.
+// 브라우저는 소리 자동재생을 막기 때문에, 막히면 화면을 처음 터치하는 순간 재생합니다.
 if (C.bgm) {
-  const audio = $("#bgm"), btn = $("#musicBtn");
-  audio.src = C.bgm; audio.volume = .4; btn.classList.remove("hidden");
-  const setState = () => btn.classList.toggle("playing", !audio.paused);
-  btn.onclick = () => { audio.paused ? audio.play() : audio.pause(); };
-  audio.onplay = audio.onpause = setState;
-  // 모바일은 자동재생이 막혀 있어 첫 터치 때 재생
-  const first = () => { audio.play().catch(() => {}); document.removeEventListener("touchstart", first); document.removeEventListener("click", first); };
-  document.addEventListener("touchstart", first, { once: true }); document.addEventListener("click", first, { once: true });
+  const audio = $("#bgm"), btn = $("#musicBtn"), notice = $("#bgmNotice");
+  let ready = false, userPaused = false;
+  audio.volume = C.bgmVolume ?? .4;
+  audio.addEventListener("canplay", () => {
+    if (ready) return; ready = true;
+    btn.classList.remove("hidden");
+  }, { once: true });
+  audio.addEventListener("error", () => { btn.remove(); notice.remove(); });   // 파일이 없으면 조용히 숨김
+  audio.src = C.bgm;
+  const sync = () => btn.classList.toggle("playing", !audio.paused);
+  audio.onplay = audio.onpause = sync;
+  const tryPlay = () => audio.play().catch(() => {});
+  btn.onclick = () => { if (audio.paused) { userPaused = false; tryPlay(); } else { userPaused = true; audio.pause(); } };
+  // 첫 터치/클릭에서 재생 (음악 버튼 자체를 누른 경우는 버튼 동작에 맡김)
+  const first = e => {
+    if (btn.contains(e.target)) return;
+    ["pointerdown", "touchstart", "keydown"].forEach(t => document.removeEventListener(t, first, true));
+    if (!userPaused && audio.paused) tryPlay();
+  };
+  ["pointerdown", "touchstart", "keydown"].forEach(t => document.addEventListener(t, first, true));
+  document.addEventListener("loading-done", () => {
+    if (!ready) return;
+    tryPlay();                                       // PC 등 자동재생이 허용되면 바로 재생
+    notice.classList.add("show"); setTimeout(() => notice.classList.remove("show"), 2800);
+  }, { once: true });
 }
 
 /* ---------- 공유 / 맨 위로 ---------- */
