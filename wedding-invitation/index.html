@@ -43,6 +43,9 @@ body{
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
+/* 사진 저장 방지: 길게 누르기 메뉴·드래그·선택 막기 (탭/스와이프는 부모 요소가 받음) */
+.main .photo,.couple .ph-wrap,.gallery li,#lightbox .stage,.ending .photo{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.main .photo img,.couple .ph-wrap img,.gallery li img,#lightbox .stage img,.ending .photo img{pointer-events:none;-webkit-user-drag:none;-webkit-touch-callout:none;user-select:none}
 ul{list-style:none}
 .hidden{display:none!important}
 
@@ -901,6 +904,12 @@ document.addEventListener("click", async e => {
 $("#endingPhoto").insertAdjacentHTML("afterbegin", img(C.endingPhoto, "엔딩 사진", "엔딩 사진"));
 $("#endingMsg").innerHTML = (C.endingMessage || []).map(l => `<p>${esc(l)}</p>`).join("");
 $("#footerNames").textContent = `${gName} & ${bName}`;
+
+/* ---------- 사진 저장 방지 (우클릭·드래그) ---------- */
+const PROTECT = ".main .photo, .couple .ph-wrap, .gallery li, #lightbox .stage, .ending .photo";
+["contextmenu", "dragstart"].forEach(ev => document.addEventListener(ev, e => {
+  if (e.target.closest && e.target.closest(PROTECT)) e.preventDefault();
+}));
 
 /* ---------- 모달 공통 ---------- */
 function lockScroll(on){ document.body.style.overflow = on ? "hidden" : ""; }
